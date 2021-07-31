@@ -7,7 +7,7 @@ import os
 import re
 
 # this might vary in each book
-div_classes_to_include = ["p", re.compile("p-indent(\d)*")]
+div_classes_to_include = ["p", re.compile("p-indent(\d)*"), re.compile("calibre(\d)*")]
 
 
 def epub2thtml(epub_path):
@@ -27,32 +27,33 @@ def chap2text(chap):
     output = ''
     soup = BeautifulSoup(chap, 'html.parser')
     text = [el.get_text() for el in soup.find_all("div", div_classes_to_include)]
+
+    # some don't use div, and we have to fliter paragraphs
+    text += [el.get_text() for el in soup.find_all("p") if not el.find(class_="bold")]
     for t in text:
         output += f'{t}\n'
+
     return output
 
 
 def clean_text(text):
     """Final pass to clean and format the chapter text.
     """
-    # remove trailing or leading whitesplaces
-    text = text.strip()
-
-    # for some reason this should be whitespace. NOTE: Might differ in other books.
-    text = re.sub(r"\r\n", " ", text)
-
-    # replace multiple whitespaces with one
-    text = re.sub(r"\n+", "\n", text)
-
+    # for some reason this should be whitespace. NOTE: Might differ from book to book.
+    text = re.sub(r"\r\n", ' ', text)
     # replace multiple whitesplaces with one
     text = re.sub(r"[^\S\r\n]+", ' ', text)
 
-    # remove whitespaces around line breaks
-    text = re.sub(r"\s\n\s", "\n", text)
+    # split by paragraph, removing trailing and leading whitespaces and myltiple newlines
+    paragraphs = [p.strip() for p in text.split('\n') if p != '']
+    # rejoin them, with only a \n separating each
+    text = '\n'.join(paragraphs)
 
     # replace some symbols with more conventional ones
     text = re.sub(r"[“”]", "\"", text)
     text = re.sub(r"’", "'", text)
+    text = re.sub(r" ?…", "...", text)
+    text = re.sub(r"\* \* \*", "***", text)
 
     return text
 
@@ -79,5 +80,4 @@ if __name__ == "__main__":
             for i, chapter in enumerate(final_book_texts[book]):
                 f.write(chapter)
                 # add chapter breaks
-                if i != len(final_book_texts[book]) - 1:
-                    f.write('\n***\n')
+                f.write('\n***\n')
