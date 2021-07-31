@@ -1,0 +1,6 @@
+beautifulsoup4==4.9.3
+EbookLib==0.17.1
+lxml==4.6.3
+pycodestyle==2.7.0
+six==1.16.0
+soupsieve==2.2.1
