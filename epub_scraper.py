@@ -51,7 +51,7 @@ def clean_text(text):
 
     # replace some symbols with more conventional ones
     text = re.sub(r"[“”]", "\"", text)
-    text = re.sub(r"’", "'", text)
+    text = re.sub(r"[‘’]", "'", text)
     text = re.sub(r" ?…", "...", text)
     text = re.sub(r"\* \* \*", "***", text)
 
